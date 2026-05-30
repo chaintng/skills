@@ -1,9 +1,9 @@
 ---
-name: sync-public
+name: content-publisher
 description: Sync public-facing artifacts from local Codex and markdown-content sources into publishable repositories. Use when the user wants to mirror personal Codex skills under ~/.codex/skills/chaintng into a public skills repo, sync markdown blog content into a blog repo, or preview those syncs with dry runs before committing and pushing manually.
 ---
 
-# Sync Public
+# Content Publisher
 
 Sync the user's public outputs from their live local sources into the publish repos.
 
@@ -11,23 +11,23 @@ Sync the user's public outputs from their live local sources into the publish re
 
 Use the bundled Python scripts to run these sync flows:
 
-- `sync_public_skills.py`: sync `~/.codex/skills/chaintng/` into `$TARGET_SKILLS_REPO/skills/`
-- `sync_public_blogs.py`: sync markdown blog sources into `$TARGET_BLOGS_REPO/content/` while excluding drafts and private or hidden notes
+- `sync_skills.py`: sync `~/.codex/skills/chaintng/` into `$TARGET_SKILLS_REPO/skills/`
+- `content-publisher-blogs.py`: sync markdown blog sources into `$TARGET_BLOGS_REPO/content/` while excluding drafts and private or hidden notes
 
 ## Commands
 
 Run from anywhere:
 
 ```bash
-python3 "$HOME/.codex/skills/chaintng/sync-public/scripts/sync_public_skills.py"
-python3 "$HOME/.codex/skills/chaintng/sync-public/scripts/sync_public_blogs.py"
+python3 "$HOME/.codex/skills/chaintng/content-publisher/scripts/sync_skills.py"
+python3 "$HOME/.codex/skills/chaintng/content-publisher/scripts/content-publisher-blogs.py"
 ```
 
 Preview with:
 
 ```bash
-python3 "$HOME/.codex/skills/chaintng/sync-public/scripts/sync_public_skills.py" --dry-run
-python3 "$HOME/.codex/skills/chaintng/sync-public/scripts/sync_public_blogs.py" --dry-run
+python3 "$HOME/.codex/skills/chaintng/content-publisher/scripts/sync_skills.py" --dry-run
+python3 "$HOME/.codex/skills/chaintng/content-publisher/scripts/content-publisher-blogs.py" --dry-run
 ```
 
 ## Workflow
@@ -93,7 +93,7 @@ Use environment variables such as:
 - `TARGET_BLOGS_REPO`
 - `TARGET_BLOGS_DIR`
 
-See `scripts/sync-public.env.example` for a portable template.
+See `scripts/content-publisher.env.example` for a portable template.
 
 ## Safety Notes
 

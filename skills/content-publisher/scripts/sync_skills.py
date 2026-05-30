@@ -38,6 +38,10 @@ def run_rsync(*, dry_run: bool) -> None:
         ".DS_Store",
         "--exclude",
         ".git",
+        "--exclude",
+        ".env",
+        "--exclude",
+        ".env.*",
     ]
     if dry_run:
         args.append("-n")

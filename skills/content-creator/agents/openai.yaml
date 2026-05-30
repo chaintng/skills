@@ -1,4 +1,4 @@
 interface:
-  display_name: "Create Content"
+  display_name: "Content Creator"
   short_description: "Create researched reel and blog content"
   default_prompt: "Use $create-content to research a topic and create a new my-contents note with index.md, transcript, and related graphics in the correct content folder structure."

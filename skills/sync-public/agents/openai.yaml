@@ -1,4 +1,0 @@
-interface:
-  display_name: "Sync Public"
-  short_description: "Sync public skills and blogs to publish repos"
-  default_prompt: "Use $sync-public to sync my public Codex skills or markdown blog content into their target GitHub repos, previewing with dry-run first when useful."

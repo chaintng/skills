@@ -60,7 +60,7 @@ def parse_frontmatter(content: str) -> tuple[str | None, list[str]]:
 
 
 def build_exclude_list() -> list[str]:
-    excluded: list[str] = []
+    excluded: set[str] = set()
 
     for path in sorted(SOURCE_MARKDOWN_BLOGS_DIR.rglob("*.md")):
         rel = path.relative_to(SOURCE_MARKDOWN_BLOGS_DIR)
@@ -73,9 +73,15 @@ def build_exclude_list() -> list[str]:
         is_draft = draft is not None and draft.lower() == "true"
         is_private = any(tag.lower() in ("private", "hidden") for tag in tags)
         if is_draft or is_private:
-            excluded.append(str(rel))
+            excluded.add(str(rel))
 
-    return excluded
+            # Directory-style posts often keep assets in a sibling attachments folder.
+            if rel.name == "index.md":
+                attachments_dir = rel.parent / "attachments"
+                if (SOURCE_MARKDOWN_BLOGS_DIR / attachments_dir).is_dir():
+                    excluded.add(f"{attachments_dir}/***")
+
+    return sorted(excluded)
 
 
 def run_rsync(*, dry_run: bool, exclude_from: Path) -> None:

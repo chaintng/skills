@@ -1,9 +1,9 @@
 ---
-name: create-content
+name: content-creator
 description: Create researched content notes under a content root using the Personal/my-contents/{YYYY}/{CONTENT-TITLE}/ pattern with index.md as the main note and a local attachments/ folder for transcript and graphics. Use when the user wants Codex to create a new reel/blog/news content, research a specified topic, draft Thai storytelling content, generate or attach a transcript, find and download related graphics, or normalize an existing my-contents note to this structure.
 ---
 
-# Create Content
+# Content Creator
 
 Create new content using the `Personal/my-contents/{YYYY}/{CONTENT-TITLE}/index.md` pattern.
 Expect `CONTENT_ROOT` to point at the root directory that contains `Personal/my-contents`.
