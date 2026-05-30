@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Apply timeline cuts to a CapCut draft_info.json file."""
+"""Apply timeline cuts to the first CapCut track in draft_info.json."""
 
 from __future__ import annotations
 
@@ -25,16 +25,26 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Clear generated subtitle caches after retiming to avoid misaligned captions",
     )
+    parser.add_argument(
+        "--min-keep-seconds",
+        type=float,
+        default=0.2,
+        help="Collapse adjacent cuts when the retained gap between them is shorter than this threshold",
+    )
     return parser.parse_args()
 
 
-def merge_cuts(cuts: list[dict[str, Any]]) -> list[tuple[int, int]]:
+def merge_cuts(cuts: list[dict[str, Any]], min_keep_us: int) -> list[tuple[int, int]]:
     pairs = sorted((int(cut["start_us"]), int(cut["end_us"])) for cut in cuts)
     merged: list[tuple[int, int]] = []
     for start, end in pairs:
         if end <= start:
             continue
-        if not merged or start > merged[-1][1]:
+        if not merged:
+            merged.append((start, end))
+            continue
+        gap_us = start - merged[-1][1]
+        if gap_us > min_keep_us:
             merged.append((start, end))
             continue
         merged[-1] = (merged[-1][0], max(merged[-1][1], end))
@@ -185,11 +195,16 @@ def main() -> int:
         backup_path.write_bytes(draft_info_path.read_bytes())
 
     data = json.loads(draft_info_path.read_text(encoding="utf-8"))
-    cuts = merge_cuts(json.loads(cuts_path.read_text(encoding="utf-8")))
+    cuts = merge_cuts(
+        json.loads(cuts_path.read_text(encoding="utf-8")),
+        max(0, int(round(args.min_keep_seconds * 1_000_000))),
+    )
     total_removed = sum(end - start for start, end in cuts)
 
-    for track in data.get("tracks", []):
-        adjust_track_segments(track, cuts)
+    tracks = data.get("tracks", [])
+    if not isinstance(tracks, list) or not tracks:
+        raise SystemExit("No tracks found in draft_info.json")
+    adjust_track_segments(tracks[0], cuts)
 
     if isinstance(data.get("duration"), int):
         data["duration"] = max(0, data["duration"] - total_removed)
@@ -209,6 +224,7 @@ def main() -> int:
             {
                 "cuts_applied": len(cuts),
                 "removed_seconds": round(total_removed / 1_000_000, 3),
+                "min_keep_seconds": args.min_keep_seconds,
                 "backup": str(backup_path),
             },
             ensure_ascii=False,

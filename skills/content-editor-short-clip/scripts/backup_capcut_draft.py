@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
-"""Create a labeled backup of a CapCut draft_info.json file."""
+"""Create labeled backups for the durable draft set of a CapCut project."""
 
 from __future__ import annotations
 
 import argparse
 import shutil
 from pathlib import Path
+
+
+def iter_draft_files(draft_dir: Path) -> list[Path]:
+    draft_files = [draft_dir / "draft_info.json"]
+    draft_files.extend(sorted(draft_dir.glob("Timelines/**/draft_info.json")))
+    return [path for path in draft_files if path.is_file()]
 
 
 def parse_args() -> argparse.Namespace:
@@ -27,17 +33,17 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     draft_dir = Path(args.draft_dir).expanduser()
-    draft_info = draft_dir / "draft_info.json"
-    if not draft_info.is_file():
-        raise SystemExit(f"draft_info.json not found: {draft_info}")
+    draft_files = iter_draft_files(draft_dir)
+    if not draft_files:
+        raise SystemExit(f"No draft_info.json files found under: {draft_dir}")
 
-    backup_path = draft_dir / f"draft_info.json.{args.label}.bak"
-    if backup_path.exists() and not args.force:
+    for draft_info in draft_files:
+        backup_path = draft_info.with_name(f"{draft_info.name}.{args.label}.bak")
+        if backup_path.exists() and not args.force:
+            print(str(backup_path))
+            continue
+        shutil.copy2(draft_info, backup_path)
         print(str(backup_path))
-        return 0
-
-    shutil.copy2(draft_info, backup_path)
-    print(str(backup_path))
     return 0
 
 
