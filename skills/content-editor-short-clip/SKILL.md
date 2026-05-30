@@ -1,9 +1,9 @@
 ---
-name: short-clip-editor
+name: content-editor-short-clip
 description: Edit a user-specified CapCut short-form project by removing dead air, false starts, and filler; rewriting generated captions into readable subtitle chunks; and coordinating with the create-content skill for graphics, attachments, and insert tracks.
 ---
 
-# short-clip-editor
+# Content Editor - Short Clip
 
 Use this skill when the user wants Codex to work on a specific CapCut project for short-form content editing.
 
@@ -69,11 +69,11 @@ Read at minimum:
 First inspect or back up with:
 
 ```bash
-python3 "$HOME/.codex/skills/chaintng/short-clip-editor/scripts/backup_capcut_draft.py" \
+python3 "$HOME/.codex/skills/chaintng/content-editor-short-clip/scripts/backup_capcut_draft.py" \
   "/Users/<user>/Movies/CapCut/User Data/Projects/com.lveditor.draft/<PROJECT NAME>" \
   --label codex
 
-python3 "$HOME/.codex/skills/chaintng/short-clip-editor/scripts/extract_draft_subtitles.py" \
+python3 "$HOME/.codex/skills/chaintng/content-editor-short-clip/scripts/extract_draft_subtitles.py" \
   "/Users/<user>/Movies/CapCut/User Data/Projects/com.lveditor.draft/<PROJECT NAME>/draft_info.json" \
   --json-out /tmp/<project>-subtitles.json \
   --srt-out /tmp/<project>-subtitles.srt
@@ -119,12 +119,12 @@ If patching draft JSON:
 Preferred CLI sequence for silence cleanup from captions:
 
 ```bash
-python3 "$HOME/.codex/skills/chaintng/short-clip-editor/scripts/make_caption_gap_cuts.py" \
+python3 "$HOME/.codex/skills/chaintng/content-editor-short-clip/scripts/make_caption_gap_cuts.py" \
   /tmp/<project>-subtitles.srt \
   /tmp/<project>-cuts.json \
   --min-gap-seconds 1.0
 
-python3 "$HOME/.codex/skills/chaintng/short-clip-editor/scripts/apply_capcut_cuts.py" \
+python3 "$HOME/.codex/skills/chaintng/content-editor-short-clip/scripts/apply_capcut_cuts.py" \
   "/Users/<user>/Movies/CapCut/User Data/Projects/com.lveditor.draft/<PROJECT NAME>/draft_info.json" \
   /tmp/<project>-cuts.json \
   --backup-label codex.silence-pass \
@@ -161,7 +161,7 @@ Use CapCut-generated captions as the raw input, then rewrite timing/text into th
 When the generated captions are structurally correct but too long, rechunk them with:
 
 ```bash
-python3 "$HOME/.codex/skills/chaintng/short-clip-editor/scripts/rechunk_srt_subtitles.py" \
+python3 "$HOME/.codex/skills/chaintng/content-editor-short-clip/scripts/rechunk_srt_subtitles.py" \
   /tmp/<project>-subtitles.srt \
   /tmp/<project>-subtitles.readable.srt \
   --max-seconds 2.0 \
@@ -199,7 +199,7 @@ Expected handoff:
 
 1. `create-content` builds or updates the content folder.
 2. `create-content` downloads graphics into `attachments/`.
-3. `short-clip-editor` uses those exact assets as insert material for CapCut or hands them back to the user if manual import is preferred.
+3. `content-editor-short-clip` uses those exact assets as insert material for CapCut or hands them back to the user if manual import is preferred.
 
 Do not scatter assets across unrelated folders when a content-local attachment folder exists.
 
