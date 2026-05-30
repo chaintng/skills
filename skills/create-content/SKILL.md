@@ -34,9 +34,11 @@ Do not place new content assets in the year-level `attachments/` folder when a c
 
 ## First Step
 
-Ask for the content name if the user has not already provided one.
+Infer the content name from the user's input, topic, or requested angle whenever a reasonable folder name can be derived.
 
-From that input:
+Ask for the content name only when the request is too ambiguous to infer a stable title.
+
+From the provided or inferred title:
 - derive `{CONTENT-TITLE}` as a folder-safe slug
 - use the current year for `{YYYY}` unless the user specifies another year
 - create the folder before drafting so all downloaded assets land in the final location
