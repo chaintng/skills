@@ -1,6 +1,10 @@
 # chaintng/skills
 
-Public Codex skills maintained under the `chaintng` namespace.
+> ⚠️ CAUTION 
+> 
+> This skill is experimental. 
+> DO BACKUP your CapCut project before use.
+> Use it at your own RISK.
 
 ## Layout
 
@@ -26,8 +30,6 @@ Create researched content using the `Personal/my-contents/{YYYY}/{CONTENT-TITLE}
 ### `content-editor-short-clip`
 
 Edit an existing CapCut short-form project by rough-cutting A-roll cleanup, tightening captions into readable subtitle chunks, and coordinating with `content-creator` for insert graphics or attachments.
-
-This skill is experimental. Back up your CapCut project before use. Use it at your own risk.
 
 ### `content-publisher`
 
