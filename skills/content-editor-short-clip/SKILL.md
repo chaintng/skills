@@ -1,6 +1,6 @@
 ---
 name: content-editor-short-clip
-description: Edit a user-specified CapCut short-form project by rough-cutting A-roll cleanup, removing dead air, filler, false starts, repeated takes, and obvious spoken mistakes without reordering; rewriting CapCut-generated captions into readable subtitle chunks; and coordinating with the content-creator skill for graphics, attachments, and insert tracks.
+description: Use when editing an existing CapCut short-form draft that needs rough-cut A-roll cleanup, subtitle rechunking or light subtitle normalization, or source-backed insert assets without rebuilding the video from scratch.
 ---
 
 # Content Editor - Short Clip
@@ -11,11 +11,11 @@ This skill is for **existing CapCut drafts**, not for creating a video from scra
 
 ## Scope
 
-This skill covers three jobs:
+This skill covers three modes:
 
-1. Clean A-roll footage with a rough cut only: remove dead air, filler, false starts, repeated takes, and obvious spoken mistakes without reordering the surviving content.
-2. Rebuild or refine captions into readable subtitle chunks.
-3. Coordinate with `content-creator` to gather graphics, charts, illustrations, or attachments from the content source folder and place them on a separate track above the main A-roll.
+1. Rough-cut cleanup: remove dead air, filler, false starts, repeated takes, and obvious spoken mistakes without reordering the surviving content.
+2. Subtitle-only cleanup: rechunk oversized subtitle rows, or do a conservative subtitle-fix pass when the user explicitly asks for typo or spacing correction.
+3. Graphics and inserts: coordinate with `content-creator` to gather graphics, charts, illustrations, or attachments from the content source folder and place them on a separate track above the main A-roll.
 
 ## Project Rules
 
@@ -25,6 +25,25 @@ This skill covers three jobs:
 - Before any destructive timeline rewrite, create a local backup of the draft JSON.
 - Before any draft-file patch, close only the active CapCut project window first if it is open, keep CapCut itself running when possible, patch the files, and then reopen the same project.
 - Quit CapCut only as a fallback if closing the working project window is not enough to stop in-memory overwrite behavior.
+- At the start of each session, warn the user that this skill is an experimental workflow and can alter CapCut project files.
+- Ask the user to confirm they understand the risk before proceeding.
+- Ask the user whether they have already created a duplicate backup of the selected project with a `-copy` suffix.
+
+### 0. Mandatory Backup Gate
+
+Before any draft-file change, enforce this order:
+
+1. duplicate the target project folder to a backup project with suffix `-copy`
+2. confirm the duplicate path exists before any patch
+3. confirm with the user that the `-copy` backup is ready to use
+
+Example:
+
+```text
+/Users/<user>/Movies/CapCut/User Data/Projects/com.lveditor.draft/<PROJECT NAME>-copy
+```
+
+Only continue after this backup exists and user confirmation is received.
 
 ## Primary Tools
 
@@ -97,6 +116,13 @@ python3 "$HOME/.codex/skills/chaintng/content-editor-short-clip/scripts/extract_
   "/Users/<user>/Movies/CapCut/User Data/Projects/com.lveditor.draft/<PROJECT NAME>/draft_info.json" \
   --json-out /tmp/<project>-subtitles.json \
   --srt-out /tmp/<project>-subtitles.srt
+```
+
+Create the duplicate backup before touching any file:
+
+```bash
+cp -R "/Users/<user>/Movies/CapCut/User Data/Projects/com.lveditor.draft/<PROJECT NAME>" \
+  "/Users/<user>/Movies/CapCut/User Data/Projects/com.lveditor.draft/<PROJECT NAME>-copy"
 ```
 
 Before any draft-file patch, after closing the active project window if needed, back up the durable draft set with:
@@ -283,7 +309,7 @@ Use the session's final expected subtitle style:
 - chunk by **phrase and meaning**, not arbitrary fixed lengths
 - avoid giant subtitle blocks
 - avoid splitting in the middle of a Thai word or obvious phrase
-- prefer short readable chunks over literal raw transcripts
+- preserve literal subtitle text during chunking; do not paraphrase or reorder words
 - preserve spoken tone and punchy wording
 
 Readable defaults:
@@ -293,13 +319,88 @@ Readable defaults:
 - if a sentence is long, split it into adjacent chunks at natural phrase boundaries
 - do not cram two unrelated ideas into one subtitle
 - keep slang and voice unless the user explicitly asks to normalize language
+- when the user requests subtitle fixing, only correct clearly incomplete words or misspellings in-place, never rewrite vocabulary or tone
 
-When two output styles are useful, prefer:
+Use CapCut-generated captions as the raw input. In subtitle-only mode, `scripts/rechunk_srt_subtitles.py` is the mechanical splitter and timing redistributor. Any typo or spacing normalization is a second pass done conservatively in-chat, not by the script.
 
-- a `readable` version
-- a `readable-phrased` version with tighter semantic phrase grouping
+Choose one subtitle-only mode:
 
-Use CapCut-generated captions as the raw input, then rewrite timing/text into the cleaner output.
+- `rechunk subtitles`: split long rows into shorter phrase-based rows, preserve source text exactly, and redistribute timing across the new rows
+- `fix subtitles`: do the same split pass, then apply only conservative surface fixes such as spacing, obvious `AI` token normalization, and clear misspelling or truncated-word repair
+
+If the user asks to **fix subtitle**, **fix subtitles**, or **rechunk subtitles**, do only the subtitle pass:
+
+- extract current subtitle rows from the current draft or use the latest user-provided subtitle source
+- run `scripts/rechunk_srt_subtitles.py` first when the rows are oversized
+- return a clickable local link to the written SRT file, not only a plain output path
+- include a preview of about the first `30` subtitle rows from the fixed SRT in-chat when the subtitle-fix pass completes
+- if the SRT has fewer than `30` rows, include the whole fixed subtitle preview
+- do not dump the full SRT in-chat when it is much longer than `30` rows unless the user explicitly asks for all rows
+- skip `build_subtitle_span_cuts.py`, `detect_silence_ffmpeg.py`, and `merge_cut_ranges.py`
+- do not generate any timeline cut plan
+- if CapCut UI does not reflect the result, tell the user to download the SRT and add it manually in CapCut
+
+Rules for `rechunk subtitles`:
+
+- preserve the source text exactly
+- do not change spelling, casing, spacing, slang, or vocabulary
+- split only at natural phrase boundaries
+
+Rules for `fix subtitles`:
+
+- preserve the speaker's vocabulary, tone, and meaning
+- allow only light normalization: split or rechunk, insert missing spacing, standardize obvious terms such as `AI`, and fix clear misspellings or incomplete words
+- do not paraphrase, summarize, sanitize, or upgrade the language into more formal Thai
+- do not invent words that are not supported by the surrounding subtitle context
+
+Allowed subtitle-fix changes:
+
+- split one oversized row into multiple adjacent rows
+- move timing boundaries so each row holds one short phrase or idea
+- insert spaces that improve readability around obvious phrase breaks
+- normalize obvious token forms such as `AI`
+- fix clear mistakes such as `สติภาพ` -> `สันติภาพ` or `หุ่นยน` -> `หุ่นยนต์` when the intended word is unambiguous
+
+Disallowed subtitle-fix changes:
+
+- paraphrasing the sentence into cleaner prose
+- replacing slang with formal wording
+- changing the joke, punchline, or emotional force
+- adding new information not already implied by the source subtitles
+- rewriting vocabulary just because a different phrasing reads better
+
+Example subtitle-fix transformation:
+
+FROM
+
+```text
+77
+00:00:00,000 --> 00:00:07,300
+ถ้าจับเอไอแต่ละตัวมาอยู่ด้วยกันจะเป็นยังไงวะมันจะเกิดสติภาพเพราะหัวใจไม่มีในหุ่นยนหรือแม่งจะฉิบหา
+```
+
+TO
+
+```text
+77
+00:00:00,000 --> 00:00:03,133
+ถ้าจับ AI แต่ละตัวมาอยู่ด้วยกัน จะเป็นยังไงวะ
+
+78
+00:00:03,133 --> 00:00:06,066
+มันจะเกิดสันติภาพ เพราะหัวใจ ไม่มีในหุ่นยนต์
+
+79
+00:00:06,066 --> 00:00:07,300
+หรือแม่งจะฉิบหาย
+```
+
+What changed:
+
+- split one overloaded row into short phrase-based chunks
+- inserted spacing for readability
+- preserved the speaker's vocabulary and aggressive tone
+- corrected only obvious transcription mistakes and incomplete words
 
 For cleanup passes, always generate the captions before cutting, not after. The subtitle timing is the semantic guide for spoken mistakes and false starts.
 For semantic false-start cleanup, the default detector is Codex analyzing those extracted subtitle timings in-chat, not a new API call embedded into the local scripts.
@@ -359,7 +460,7 @@ Do not scatter assets across unrelated folders when a content-local attachment f
 ## Safety Rules
 
 - Never modify a different CapCut draft just because it is newer.
-- Never switch to a `copy` draft without explicit user instruction.
+- Do not switch to a `copy` draft except the user-confirmed `-copy` backup workflow from the mandatory session gate.
 - Never overwrite the user's final edit decisions after they say a section is final.
 - Always create a backup before patching draft JSON.
 - Never patch a draft that is still open in the CapCut editor.
@@ -424,6 +525,27 @@ Expected behavior:
 - split by phrase
 - avoid massive blocks
 - preserve tone
+
+### Fix subtitle only
+
+User intent:
+
+```text
+Fix subtitle.
+```
+
+Expected behavior:
+
+- do not edit the A-roll timeline
+- treat current subtitle timing rows as source input, not fixed output boundaries
+- split oversized subtitle rows into smaller chunks
+- rebalance timings across the new chunks
+- if the user said `rechunk`, preserve source text exactly
+- if the user said `fix subtitle`, allow only conservative spacing or typo repair without changing vocabulary
+- provide a clickable local link to the written SRT file
+- show about the first `30` rows of the fixed subtitles in-session as a preview
+- keep each source word or phrase intact except explicit typo or incomplete-word correction in `fix subtitle` mode
+- if CapCut UI does not reflect the result, guide the user to manually import/download the SRT
 
 ### Add source-backed visuals
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Extract subtitle timing blocks from a CapCut draft into JSON or SRT."""
+"""Extract original subtitle rows from a CapCut draft into JSON or SRT."""
 
 from __future__ import annotations
 
@@ -25,41 +25,83 @@ def format_srt_time(value_us: int) -> str:
     return f"{hours:02d}:{minutes:02d}:{seconds:02d},{ms:03d}"
 
 
-def collect_subtitle_blocks(node: Any, results: list[dict[str, Any]]) -> None:
-    if isinstance(node, dict):
-        if {
-            "start_time",
-            "end_time",
-            "subtitle_cache_info",
-        }.issubset(node.keys()) and isinstance(node["start_time"], int) and isinstance(node["end_time"], int):
-            raw = node.get("subtitle_cache_info") or ""
-            text = ""
-            try:
-                payload = json.loads(raw) if raw else {}
-                sentences = payload.get("sentence_list") or []
-                text = "\n".join(
-                    (sentence.get("text") or "").strip()
-                    for sentence in sentences
-                    if (sentence.get("text") or "").strip()
-                ).strip()
-            except json.JSONDecodeError:
-                text = ""
+def extract_text_payload_text(raw: Any) -> str:
+    if not isinstance(raw, str) or not raw.strip():
+        return ""
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError:
+        return ""
+    text = payload.get("text")
+    return text.strip() if isinstance(text, str) else ""
 
-            results.append(
+
+def collect_original_subtitle_rows(data: dict[str, Any]) -> list[dict[str, Any]]:
+    materials = data.get("materials")
+    tracks = data.get("tracks")
+    if not isinstance(materials, dict) or not isinstance(tracks, list):
+        return []
+
+    text_materials = materials.get("texts")
+    if not isinstance(text_materials, list):
+        return []
+
+    subtitle_materials: dict[str, dict[str, Any]] = {}
+    for item in text_materials:
+        if not isinstance(item, dict):
+            continue
+        if item.get("type") != "subtitle":
+            continue
+        material_id = item.get("id")
+        if not isinstance(material_id, str) or not material_id:
+            continue
+        text = (item.get("recognize_text") or "").strip()
+        if not text:
+            text = extract_text_payload_text(item.get("content"))
+        if not text:
+            text = extract_text_payload_text(item.get("base_content"))
+        subtitle_materials[material_id] = {
+            "text": text,
+            "recognize_task_id": item.get("recognize_task_id"),
+        }
+
+    if not subtitle_materials:
+        return []
+
+    rows: list[dict[str, Any]] = []
+    for track in tracks:
+        if not isinstance(track, dict) or track.get("type") != "text":
+            continue
+        segments = track.get("segments")
+        if not isinstance(segments, list):
+            continue
+        for segment in segments:
+            if not isinstance(segment, dict):
+                continue
+            material_id = segment.get("material_id")
+            material = subtitle_materials.get(material_id)
+            if material is None:
+                continue
+            target_timerange = segment.get("target_timerange")
+            if not isinstance(target_timerange, dict):
+                continue
+            start_us = target_timerange.get("start")
+            duration_us = target_timerange.get("duration")
+            if not isinstance(start_us, int) or not isinstance(duration_us, int):
+                continue
+            text = material["text"]
+            rows.append(
                 {
-                    "start_us": node["start_time"],
-                    "end_us": node["end_time"],
-                    "duration_us": node["end_time"] - node["start_time"],
+                    "start_us": start_us,
+                    "end_us": start_us + duration_us,
+                    "duration_us": duration_us,
                     "text": text,
                     "is_empty": not bool(text),
+                    "recognize_task_id": material.get("recognize_task_id") or "",
                 }
             )
 
-        for value in node.values():
-            collect_subtitle_blocks(value, results)
-    elif isinstance(node, list):
-        for item in node:
-            collect_subtitle_blocks(item, results)
+    return dedupe_blocks(rows)
 
 
 def dedupe_blocks(blocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -93,9 +135,11 @@ def main() -> int:
     args = parse_args()
     draft_info_path = Path(args.draft_info).expanduser()
     data = json.loads(draft_info_path.read_text(encoding="utf-8"))
-    blocks: list[dict[str, Any]] = []
-    collect_subtitle_blocks(data, blocks)
-    blocks = dedupe_blocks(blocks)
+    blocks = collect_original_subtitle_rows(data)
+    if not blocks:
+        raise SystemExit(
+            "No original subtitle materials found in materials.texts with matching text-track segments"
+        )
 
     if args.json_out:
         Path(args.json_out).expanduser().write_text(

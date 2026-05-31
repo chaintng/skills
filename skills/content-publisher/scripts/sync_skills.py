@@ -12,7 +12,7 @@ from pathlib import Path
 HOME = Path.home()
 
 SOURCE_SKILLS_DIR = Path(os.environ.get("SOURCE_SKILLS_DIR", HOME / ".codex/skills/chaintng"))
-TARGET_SKILLS_REPO = Path(os.environ.get("TARGET_SKILLS_REPO", HOME / "Projects/public-skills"))
+TARGET_SKILLS_REPO = Path(os.environ.get("TARGET_SKILLS_REPO", HOME / "Projects/chaintng/skills"))
 TARGET_SKILLS_DIR = Path(os.environ.get("TARGET_SKILLS_DIR", TARGET_SKILLS_REPO / "skills"))
 
 

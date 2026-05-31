@@ -6,8 +6,9 @@ Public Codex skills maintained under the `chaintng` namespace.
 
 ```text
 skills/
-  create-content/
-  sync-public/
+  content-creator/
+  content-editor-short-clip/
+  content-publisher/
 ```
 
 Each skill folder is a self-contained Codex skill with its own:
@@ -18,16 +19,22 @@ Each skill folder is a self-contained Codex skill with its own:
 
 ## Current Skills
 
-### `create-content`
+### `content-creator`
 
 Create researched content using the `Personal/my-contents/{YYYY}/{CONTENT-TITLE}/index.md` pattern with local `attachments/` for transcript and graphics.
 
-### `sync-public`
+### `content-editor-short-clip`
+
+Edit an existing CapCut short-form project by rough-cutting A-roll cleanup, tightening captions into readable subtitle chunks, and coordinating with `content-creator` for insert graphics or attachments.
+
+This skill is experimental. Back up your CapCut project before use. Use it at your own risk.
+
+### `content-publisher`
 
 Sync public-facing local artifacts into publish repos.
 
-- `sync_public_skills.py`: mirror local `chaintng` skills into a public skills repo
-- `sync_public_blogs.py`: sync markdown blog sources into a blog/content repo
+- `sync_skills.py`: mirror local `chaintng` skills into a public skills repo
+- `content-publisher-blogs.py`: sync markdown blog sources into a blog/content repo
 
 ## Publishing Flow
 
