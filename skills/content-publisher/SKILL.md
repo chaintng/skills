@@ -12,7 +12,7 @@ Sync the user's public outputs from their live local sources into the publish re
 Use the bundled Python scripts to run these sync flows:
 
 - `sync_skills.py`: sync `~/.codex/skills/chaintng/` into `$TARGET_SKILLS_REPO/skills/`
-- `content-publisher-blogs.py`: sync markdown blog sources into `$TARGET_BLOGS_REPO/content/` while excluding drafts and private or hidden notes
+- `sync_blogs.py`: sync markdown blog sources into `$TARGET_BLOGS_REPO/content/` while excluding drafts and private or hidden notes
 
 ## Commands
 
@@ -20,14 +20,14 @@ Run from anywhere:
 
 ```bash
 python3 "$HOME/.codex/skills/chaintng/content-publisher/scripts/sync_skills.py"
-python3 "$HOME/.codex/skills/chaintng/content-publisher/scripts/content-publisher-blogs.py"
+python3 "$HOME/.codex/skills/chaintng/content-publisher/scripts/sync_blogs.py"
 ```
 
 Preview with:
 
 ```bash
 python3 "$HOME/.codex/skills/chaintng/content-publisher/scripts/sync_skills.py" --dry-run
-python3 "$HOME/.codex/skills/chaintng/content-publisher/scripts/content-publisher-blogs.py" --dry-run
+python3 "$HOME/.codex/skills/chaintng/content-publisher/scripts/sync_blogs.py" --dry-run
 ```
 
 ## Workflow
@@ -83,6 +83,9 @@ Example source setup:
 
 Keep machine-specific paths out of git.
 
+If the publish project already has a local `.env` file, load that project-local `.env` into the current shell before running the sync scripts.
+Do not use `.env-template`, `.env.example`, or any template file as the runtime source of truth.
+
 Use environment variables such as:
 
 - `SOURCE_SKILLS_DIR`
@@ -93,7 +96,14 @@ Use environment variables such as:
 - `TARGET_BLOGS_REPO`
 - `TARGET_BLOGS_DIR`
 
-See `scripts/content-publisher.env.example` for a portable template.
+Example load flow:
+
+```bash
+set -a
+source /path/to/project/.env
+set +a
+python3 "$HOME/.codex/skills/chaintng/content-publisher/scripts/sync_skills.py" --dry-run
+```
 
 ## Safety Notes
 
