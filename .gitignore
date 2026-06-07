@@ -5,6 +5,10 @@
 !.codex/skills/public
 !.codex/skills/public/**/*
 
+!AGENTS.md
+!LICENSE
+!README.md
+
 # macOS / editor noise
 .DS_Store
 **/.DS_Store

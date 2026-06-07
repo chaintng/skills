@@ -1,4 +1,4 @@
-# chaintng/skills
+# chaintng/ai-playbook
 
 > ⚠️ CAUTION 
 > 
@@ -8,40 +8,44 @@
 > 
 > Use it at your own RISK.
 
-## Layout
+## Workspace
+
+`ai-playbook` is the `monolithic wrapper`, a root knowledge and automation repo for Agentic skills, reusable workflows, and supporting resources.
+
+To use this repository, clone this repo as a `root workspace directory`, and other of your resources into this directory and tell agentic to update how your workspace is structured.
+
+## Working Directory 
+
+// SAMPLE WORKING DIRECTORY
+// MUST ASK AGENTIC TO UPDATE BEFORE USE
 
 ```text
-skills/
-  content-creator/
-  content-editor-short-clip/
-  content-publisher/
+my-projects/ # cloned `ai-playbook` repo (`git clone https://github.com/chaintng/ai-playbook.git`)
+├── .codex/
+│   └── skills/
+├── vdo-contents/
+│   ├── footage/
+│   ├── final-videos/
+│   └── temp/
+├── obsidian/
+│   ├── migration-tools/
+│   └── plugins/
+├── smarthome/
+│   └── hassio-core/
+├── coding/
+│   ├── chillish/
+│   ├── ...
+├── blogs/
+│   ├── content/
+│   ├── ...
+├── README.md
+└── AGENTS.md
 ```
 
-Each skill folder is a self-contained Codex skill with its own:
-
-- `SKILL.md`
-- `agents/openai.yaml` when UI metadata is needed
-- optional `scripts/`, `references/`, or `assets/`
-
-## Current Skills
-
-### `content-creator`
-
-Create researched content using the `Personal/my-contents/{YYYY}/{CONTENT-TITLE}/index.md` pattern with local `attachments/` for transcript and graphics.
-
-### `content-editor-short-clip`
-
-Edit an existing CapCut short-form project by rough-cutting A-roll cleanup, tightening captions into readable subtitle chunks, and coordinating with `content-creator` for insert graphics or attachments.
-
-### `content-publisher`
-
-Sync public-facing local artifacts into publish repos.
-
-- `sync_skills.py`: mirror local `chaintng` skills into a public skills repo
-- `content-publisher-blogs.py`: sync markdown blog sources into a blog/content repo
-
-## Publishing Flow
-
-The live local source of truth can stay in `~/.codex/skills/chaintng/`.
-
-This repo is the public mirror. Sync into `skills/` first, then review, commit, and push.
+Top-level folders:
+- `.codex/` stores Codex skills, playbooks, and local agent automation. Follow best practices for agent metadata and automation scripts.
+- `vdo-contents/` stores video project materials, including raw footage, temp working files, and final exports.
+- `obsidian/` stores the Obsidian contribution project, note vault material, plugins, and migration helpers.
+- `smarthome/` stores smart home related projects, home automation, embedded devices, and configuration work.
+- `coding/` stores other software side projects, experiments, utilities, and client or personal codebases.
+- `blogs/` static site generated from content of my personal blog (https://chaintng.com), powered by Quartz
