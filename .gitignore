@@ -1,7 +1,9 @@
 *
 
 !.codex
-!.codex/**/*
+!.codex/skills
+!.codex/skills/public
+!.codex/skills/public/**/*
 
 # macOS / editor noise
 .DS_Store
