@@ -1,0 +1,31 @@
+*
+
+!skills/**/*
+
+!skills
+
+# macOS / editor noise
+.DS_Store
+**/.DS_Store
+.vscode/
+**/.vscode/
+
+# local agent / browser / package-manager state
+.agents/
+.claude/
+.playwright-cli/
+.playwright-mcp/
+.pnpm-store/
+**/.pnpm-store/
+
+# local scratch output
+tmp/
+generated/
+
+environment.toml
+.env
+.env*
+!.env-template
+!.env-example
+
+!.gitignore
