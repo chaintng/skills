@@ -32,3 +32,8 @@ environment.toml
 !.env-example
 
 !.gitignore
+
+# iCloud-backed agent-library mounts (created locally by setup)
+.codex/skills/public
+.codex/skills/private
+.codex/skills/kaojai-ai

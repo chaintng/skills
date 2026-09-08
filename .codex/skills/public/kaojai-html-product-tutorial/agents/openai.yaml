@@ -1,4 +1,0 @@
-interface:
-  display_name: "KaoJai HTML Product Tutorial"
-  short_description: "Build HTML-first KaoJai phone tutorials"
-  default_prompt: "Use $kaojai-html-product-tutorial to create or revise this KaoJai product tutorial with HTML-first 390x844 product footage, Kanit social-safe copy, action markers and connector lines, a persistent iPhone frame, and the approved branded splash."
